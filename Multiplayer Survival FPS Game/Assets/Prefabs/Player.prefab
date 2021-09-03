@@ -30,7 +30,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1259146169535261381}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0.92, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1259146170918903848}
@@ -124,10 +124,12 @@ MonoBehaviour:
   playerCamera: {fileID: 1259146170950304588}
   movementSpeed: 5
   movementSmoothTime: 0.1
-  JumpHeight: 1
+  JumpForce: 8
   mouseSensitivity: 0.9
   mouseSmoothTime: 0.03
   gravity: -24
+  slopeForce: 5
+  slopeForceRayLength: 1.5
 --- !u!114 &2903077778814990748
 MonoBehaviour:
   m_ObjectHideFlags: 0

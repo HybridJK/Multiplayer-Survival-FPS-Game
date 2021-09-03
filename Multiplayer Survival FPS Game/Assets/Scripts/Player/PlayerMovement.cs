@@ -24,6 +24,9 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         //Gravity Variables
         private float velocityY = 0f;
 
+        //Jump Variables
+        private bool isJumping = false;
+
         [Header("Referances")]
         [SerializeField] private CharacterController controller;
         [SerializeField] private Camera playerCamera;
@@ -32,7 +35,7 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         [SerializeField] private float movementSpeed = 2f;
         [Range(0f, 0.5f)]
         [SerializeField] private float movementSmoothTime = 2f;
-        [SerializeField] private float JumpHeight = 1f;
+        [SerializeField] private float JumpForce = 1f;
 
         [Header("Mouse Movement Settings")]
         [Range(0.1f, 2f)]
@@ -42,6 +45,10 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
 
         [Header("Gravity Settings")]
         [SerializeField] private float gravity = -13f;
+
+        [Header("Slope Settings")]
+        [SerializeField] private float slopeForce;
+        [SerializeField] private float slopeForceRayLength;
 
         private void Awake()
         {
@@ -55,18 +62,10 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         {
             movement = inputs.Player.Movement;
             movement.Enable();
-
-            inputs.Player.Jump.performed += Jump;
-            inputs.Player.Jump.Enable();
         }
         private void OnDisable()
         {
             movement.Disable();
-            inputs.Player.Jump.Disable();
-        }
-        private void Jump(InputAction.CallbackContext obj)
-        {
-            Debug.Log("Jump!");
         }
         private void Update()
         {
@@ -80,16 +79,31 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         }
         private void KeyboardMovement()
         {
+            // ------ Movement Calculatons ------
             Vector2 targetDir = new Vector2(movement.ReadValue<Vector2>().x, movement.ReadValue<Vector2>().y); //Target values for movement
             currentDir = Vector2.SmoothDamp(currentDir, targetDir, ref currentDirVelocity, movementSmoothTime); //Smoothing the movement from the current pos to the target pos with time
 
-            if (controller.isGrounded)
+            // ------ Slope Calculations
+            if ((targetDir.x != 0 || targetDir.y != 0) && OnSlope()) //If player is moving and is on a slope
             {
-                velocityY = 0f;
+                controller.Move(Vector3.down * controller.height / 2 * slopeForce * Time.deltaTime); //Apply greater downwards force
             }
 
-            velocityY += gravity * Time.deltaTime;
+            // ------ Jumping Calculations ------
+            if (controller.isGrounded) //Checking if the character is on the ground
+            {
+                velocityY = gravity * Time.deltaTime; //If player is on the ground - Set to gravity
+                if (Input.GetKey(KeyCode.Space)) //If player is on the ground & pressing Jump - Jump
+                {
+                    velocityY = JumpForce;
+                }
+            }
+            else
+            {
+                velocityY += gravity * Time.deltaTime; //If player is not on the ground - Apply gravity
+            }
 
+            // ------ Final Calculations & Applying forces to character
             Vector3 velocity = (transform.forward * currentDir.y + transform.right * currentDir.x) * movementSpeed + Vector3.up * velocityY; //create velocity by multiplying the forward with y direction, the right with x direction, and then adding together; Also adding the gravity at the end with forward but in negative direction
             controller.Move(velocity * Time.deltaTime); //Moving the controller with velocity and time.deltaTime
         }
@@ -102,6 +116,20 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
             cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f); //Constraining the camera x-axis rotation to straight up & down
             playerCamera.transform.localEulerAngles = Vector3.right * cameraPitch; //Rotating the local rotation of the camera on the x-axis
         }
+        private bool OnSlope() 
+        {
+            if (isJumping) { return false; } //If jumping - Not on slope
+
+            RaycastHit hit; //Holds raycast hit value
+            if (Physics.Raycast(transform.position, Vector3.down, out hit, controller.height / 2 * slopeForceRayLength)) //Create raycast from player center down into the floor
+            {
+                if (hit.normal != Vector3.up) //If raycast is not hitting a flat surface (not a slope)
+                {
+                    return true; //Return is on slope
+                }
+            }
+            return false; //Return is not on slope
+        } //Check if the player is on a slope
     }
 
 }
