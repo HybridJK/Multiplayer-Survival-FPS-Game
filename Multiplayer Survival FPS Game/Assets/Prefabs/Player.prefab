@@ -122,9 +122,12 @@ MonoBehaviour:
   syncInterval: 0.1
   controller: {fileID: 5478497462487552420}
   playerCamera: {fileID: 1259146170950304588}
-  movementSpeed: 2
+  movementSpeed: 5
+  movementSmoothTime: 0.1
   JumpHeight: 1
-  mouseSensitivity: 200
+  mouseSensitivity: 0.9
+  mouseSmoothTime: 0.03
+  gravity: -24
 --- !u!114 &2903077778814990748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,7 +164,7 @@ MonoBehaviour:
   syncPosition: 1
   syncRotation: 1
   syncScale: 0
-  interpolatePosition: 0
+  interpolatePosition: 1
   interpolateRotation: 1
   interpolateScale: 1
   bufferTimeMultiplier: 3
