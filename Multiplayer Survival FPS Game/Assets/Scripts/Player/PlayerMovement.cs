@@ -26,6 +26,7 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         //Mouse Movement Variables
         private Vector2 targetMouseDelta = Vector2.zero;
         private float cameraPitch = 0f;
+        private float playerEyePitch = 0f;
         private Vector2 currentMouseDelta = Vector2.zero;
         private Vector2 currentMouseDeltaVelocity = Vector2.zero;
 
@@ -38,6 +39,7 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         [Header("Referances")]
         [SerializeField] private CharacterController controller;
         [SerializeField] private Camera playerCamera;
+        [SerializeField] private GameObject playerEyes;
 
         [Header("Keyboard Movement Settings")]
         [SerializeField] private float walkSpeed = 2f;
@@ -67,13 +69,19 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         [Header("Slope Settings")]
         [SerializeField] private float slopeForce;
         [SerializeField] private float slopeForceRayLength;
-
         private void Awake()
         {
             inputs = new Inputs();
         }
         private void Start()
         {
+            if (!isLocalPlayer) //Make sure other player Data is not controlled by other client, and also diable other player's camera's and audio listeners
+            {
+                playerCamera.gameObject.SetActive(false);
+                playerCamera.GetComponent<AudioListener>().gameObject.SetActive(false);
+                playerEyes.SetActive(true);
+                return;
+            }
             Cursor.lockState = CursorLockMode.Locked;
         }
         private void OnEnable()
@@ -95,6 +103,7 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         }
         private void Update()
         {
+            if (!isLocalPlayer) { return; } //Make sure client is not changing other player data
             // ------ Player Movement (Keyboard) ------
             KeyboardMovement();
 
@@ -113,6 +122,7 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
         }
         private void LateUpdate()
         {
+            if (!isLocalPlayer) { return; } //Make sure client is not changing other player data
             // ------ Mouse Movement -------
             MouseMovement();
         }
@@ -158,6 +168,9 @@ namespace HybridJK.MultiplayerSurvival.PlayerMovement
             cameraPitch -= currentMouseDelta.y * mouseSensitivity; //Inverting and creating the camera x-axis rotation
             cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f); //Constraining the camera x-axis rotation to straight up & down
             playerCamera.transform.localEulerAngles = Vector3.right * cameraPitch; //Rotating the local rotation of the camera on the x-axis
+            playerEyePitch = Mathf.Clamp(cameraPitch, -30f, 30f); //Constraining the player eye's x-rotation to -30 - 30 degrees
+            playerEyes.transform.localEulerAngles = Vector3.right * playerEyePitch; //Rotating the local rotation of the player eye's on the x-axis (Player eye rotation and camera rotation will match, only difference is that eye's can't go straight up and down)
+
         } //Does all the mouse movement logic
         private bool OnSlope() 
         {
